@@ -1,0 +1,44 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from thinkdsp import Chirp
+from thinkdsp import SawtoothSignal
+
+class SawtoothChirp(Chirp):
+    def _evaluate(self, ts, freqs):
+        dts = np.diff(ts)
+        dphis = 2 * np.pi * freqs * dts
+        phases = np.cumsum(dphis)
+        phases = np.insert(phases, 0, 0)
+        cycles = phases / (2 * np.pi)
+        frac, _ = np.modf(cycles)
+        ys = SawtoothSignal(freqs).evaluate(ts)
+        ys = np.where(frac < 0.5, -1, 1) * ys
+        return ys
+
+# Parameters for the sawtooth chirp
+start_freq = 20
+end_freq = 1000
+duration = 1.0
+
+# Create the sawtooth chirp signal
+signal = SawtoothChirp(start=start_freq, end=end_freq)
+wave = signal.make_wave(duration)
+
+# Plot the waveform
+plt.figure(figsize=(10, 4))
+wave.plot()
+plt.xlabel('Time (s)')
+plt.ylabel('Amplitude')
+plt.title('Sawtooth Chirp Waveform')
+plt.show()
+
+# Plot the spectrogram
+plt.figure(figsize=(10, 4))
+wave.make_spectrogram(256).plot(high=800)
+plt.xlabel('Time (s)')
+plt.ylabel('Frequency (Hz)')
+plt.title('Spectrogram of Sawtooth Chirp')
+plt.show()
+
+# Play the sound
+wave.make_audio()
